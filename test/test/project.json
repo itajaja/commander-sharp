@@ -1,0 +1,22 @@
+﻿{
+  "version": "1.0.0-*",
+  "description": "test Class Library",
+  "authors": [ "giaco_000" ],
+  "tags": [ "" ],
+  "projectUrl": "",
+  "licenseUrl": "",
+
+  "dependencies": {
+    "commander-sharp": "",
+    "xunit": "2.1.0-beta4-*",
+    "xunit.runner.dnx": "2.1.0-beta4-*"
+  },
+
+  "commands": {
+    "test": "xunit.runner.dnx"
+  },
+
+  "frameworks": {
+    "dnx451": {}
+  }
+}
