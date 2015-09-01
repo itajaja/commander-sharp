@@ -5,22 +5,22 @@ using System.Text;
 
 namespace Jaja.Commander
 {
-  /// <summary>
-  /// Utility class that exposes generic parse method
-  /// </summary>
-  internal static class Parser
+  internal static class Utils
   {
+    /// <summary>
+    /// Generic parse method
+    /// </summary>
     internal static T Parse<T>(string s)
     {
       return (T)Convert.ChangeType(s, typeof (T));
     }
 
     /// <summary>
-    /// Find the duplicates in a list
+    /// Find the first duplicates in a list
     /// </summary>
     internal static IGrouping<TKey, TSource> FindDups<TSource, TKey>(this IEnumerable<TSource> list, Func<TSource, TKey> keySelector) => list
       .GroupBy(keySelector)
-      .FirstOrDefault();
+      .FirstOrDefault(g => g.Count() > 1);
 
     /// <summary>
     /// Camelize a string

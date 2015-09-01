@@ -1,13 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Jaja.Commander
 {
-  public class Commander
+  public static class Commander
   {
-    #region private
-    private readonly IList<Argument> _options = new List<Argument>();
-    #endregion
+    public static Commander<T> New<T>(T arguments)
+    {
+      var t = typeof(T);
+      var argumentType = typeof(Arg);
+
+      var args = t.GetProperties()
+        .Where(prop => typeof(Arg).IsAssignableFrom(prop.PropertyType))
+        .Select(prop =>
+        {
+          var arg = (Arg) prop.GetValue(arguments);
+
+          var shortName = char.ToLower(prop.Name.First());
+          // defaults the short name to the first character of the property
+          if (arg.ShortName == default(char))
+            arg.ShortName = shortName;
+
+          // defaults the long name to the property name (with lowercase first character)
+          if (string.IsNullOrEmpty(arg.LongName))
+            arg.LongName = string.Concat(shortName, prop.Name.Substring(1));
+
+          return arg;
+        })
+        .ToList();
+
+      return new Commander<T>(args);
+    }
+  }
+
+  public class Commander<T>
+  {
+    public IList<Arg> Arguments { get; }
+
+    internal Commander(IList<Arg> arguments)
+    {
+      Arguments = arguments;
+      // validte the arguments first
+      ValidateArgs();
+    }
 
     /// <summary>
     /// String that describes the usage of the command
@@ -15,65 +50,25 @@ namespace Jaja.Commander
     public string Usage { get; set; }
 
     /// <summary>
-    /// Adds an option to the command line argument
-    /// </summary>
-    /// <param name="shortCommand"></param>
-    /// <returns></returns>
-    public Commander Argument(char shortCommand, string longCommand = "", string description = "")
-    {
-      _options.Add(new Argument
-      {
-        LongCommand = longCommand,
-        Description = description,
-        ShortCommand = shortCommand
-      });
-      return this;
-    }
-
-    /// <summary>
-    /// Adds an option to the command line arguments
-    /// </summary>
-    /// <param name="shortCommand"></param>
-    /// <returns></returns>
-    public Commander Argument<T>(char shortCommand, string longCommand = "", string description = "",
-      Func<string, T> coercion = null, T defaultVal = default(T), bool optional = true)
-    {
-      var opt = new Argument<T>
-      {
-        LongCommand = longCommand,
-        Description = description,
-        ShortCommand = shortCommand,
-        Default = defaultVal,
-        Optional = optional
-      };
-      if (coercion != null)
-        opt.Coercion = coercion;
-      _options.Add(opt);
-      return this;
-    }
-
-    /// <summary>
     /// Creates a command line parser out of the parsed values
     /// </summary>
     /// <param name="args"></param>
-    public void Parse(string[] args)
+    public T Parse(string[] args)
     {
-      // validte the arguments
-      ValidateArgs();
+      return default(T);
     }
 
     #region private methods
-
     /// <summary>
     /// private method to validate the arguments
     /// </summary>
     private void ValidateArgs()
     {
-      var duplicateShort = _options.FindDups(o => o.ShortCommand);
+      var duplicateShort = Arguments.FindDups(o => o.ShortName);
       if (duplicateShort != null)
         throw new CommanderException($"Invalid commands, there are two commands with key {duplicateShort.Key}");
 
-      var duplicateLong = _options.FindDups(o => o.LongCommand);
+      var duplicateLong = Arguments.FindDups(o => o.LongName);
       if (duplicateLong != null)
         throw new CommanderException($"Invalid commands, there are two commands with key {duplicateLong.Key}");
     }
