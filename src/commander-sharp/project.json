@@ -6,11 +6,9 @@
   "projectUrl": "",
   "licenseUrl": "",
 
-  "dependencies": {
-
-  },
+  "dependencies": { },
 
   "frameworks": {
-    "dnx451": {}
+    "dnx451": { }
   }
 }

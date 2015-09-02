@@ -2,11 +2,11 @@ using System;
 
 namespace Jaja.Commander
 {
-  public class Arg
+  public class Opt
   {
-    public Arg() { }
+    public Opt() { }
 
-    public Arg(char shortName = default(char), string longName = "", string desc = "")
+    public Opt(char shortName = default(char), string longName = "", string desc = "")
     {
       ShortName = shortName;
       LongName = longName;
@@ -18,11 +18,13 @@ namespace Jaja.Commander
     public string LongName { get; internal set; }
 
     public string Desc { get; internal set; }
+
+    public bool IsDefined { get; internal set; }
   }
 
-  public class Arg<T> : Arg
+  public class Opt<T> : Opt
   {
-    public Arg(char shortName = default(char), string longName = "", string desc = "",
+    public Opt(char shortName = default(char), string longName = "", string desc = "",
       bool isOptional = true, Func<string, T> coercion = null, T defaultValue = default(T))
       : base(shortName, longName, @desc)
     {

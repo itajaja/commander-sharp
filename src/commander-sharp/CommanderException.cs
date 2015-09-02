@@ -4,9 +4,9 @@ using System.Runtime.Serialization;
 namespace Jaja.Commander
 {
   [Serializable]
-  public class CommanderException : Exception, ISerializable
+  public class CommanderException : Exception
   {
-    public CommanderException() : base() { }
+    public CommanderException() { }
 
     public CommanderException(string message) : base(message) { }
 

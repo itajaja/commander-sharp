@@ -10,8 +10,8 @@ namespace Jaja.Commander.Test
     {
       var pars = new
       {
-        Foo = new Arg('a'),
-        Bar = new Arg('a')
+        Foo = new Opt('a'),
+        Bar = new Opt('a')
       };
 
       Assert.Throws<CommanderException>(() => Commander.New(pars));
@@ -22,8 +22,8 @@ namespace Jaja.Commander.Test
     {
       var pars = new
       {
-        Foo = new Arg<int>(longName: "foo"),
-        Bar = new Arg(longName: "foo")
+        Foo = new Opt<int>(longName: "foo"),
+        Bar = new Opt(longName: "foo")
       };
 
       Assert.Throws<CommanderException>(() => Commander.New(pars));
@@ -34,22 +34,41 @@ namespace Jaja.Commander.Test
     {
       var c = Commander.New(new
       {
-        Foo = new Arg<int>(),
-        Bar = new Arg(),
-        Waka = new Arg('z'),
-        Chu = new Arg(longName: "chuchu"),
+        Foo = new Opt<int>(),
+        Bar = new Opt(),
+        Waka = new Opt('z'),
+        Chu = new Opt(longName: "chuchu"),
       });
 
-      var shorts = c.Arguments.Select(a => a.ShortName).ToList();
+      var shorts = c.OptionsDic.Select(a => a.Value.ShortName).ToList();
       new[] { 'f', 'z', 'b', 'c' }
         .ToList()
         .ForEach(a => Assert.Contains(a, shorts));
 
-      var longs = c.Arguments.Select(a => a.LongName).ToList();
+      var longs = c.OptionsDic.Select(a => a.Value.LongName).ToList();
       new[] { "foo", "bar", "waka", "chuchu" }
         .ToList()
         .ForEach(a => Assert.Contains(a, longs));
-
     }
+
+    [Fact]
+    public void ParseCorrectly()
+    {
+      var args = CreateArgs("-f 11 -b -c", new
+      {
+        Foo = new Opt<int>(),
+        Bar = new Opt(),
+        Waka = new Opt('z'),
+        Chu = new Opt(longName: "chuchu"),
+      });
+      
+      Assert.Equal(args.Options.Foo.Value, 11);
+      Assert.Equal(args.Options.Bar.IsDefined, true);
+      Assert.Equal(args.Options.Waka.IsDefined, false);
+      Assert.Equal(args.Options.Chu.IsDefined, true);
+    }
+
+    private static Arguments<T> CreateArgs<T>(string inputArgs, T options) =>
+      Commander.New(options).Parse(inputArgs.Split(' '));
   }
 }
