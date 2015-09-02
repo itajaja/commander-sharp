@@ -19,9 +19,7 @@ namespace Jaja.Commander
     public IDictionary<string, Opt> OptionsDic { get; }
 
     public T Options { get; }
-
-
-
+    
     internal Commander(T options)
     {
       var t = typeof(T);
@@ -62,9 +60,9 @@ namespace Jaja.Commander
     /// <param name="args"></param>
     public Arguments<T> Parse(string[] args)
     {
-      Func<string, bool> isShort = a => a.Length >= 2 && a[0] == '-' && a[1] != '-';
+      Func<string, bool> isShort = a => a.Length == 2 && a[0] == '-' && a[1] != '-';
       Func<string, bool> isLong = a => a.Length >= 2 && a[0] == '-' && a[1] == '-';
-      Func<string, bool> isShorts = a => a.Length >= 3 && a[0] == '-' && a[1] != '-';
+      Func<string, bool> isShorts = a => a.Length > 2 && a[0] == '-' && a[1] != '-';
       var parsedArgs = args.Select(a => new
       {
         val = a,
@@ -89,7 +87,7 @@ namespace Jaja.Commander
             break;
           case ArgType.ShortOpts:
             foreach (var opt in cur.val.Skip(1))
-              SetArgument(Options, GetProp(cur.type, opt.ToString()).Key);
+              SetArgument(Options, GetProp(cur.type, "-" + opt).Key);
             break;
           case ArgType.Argument:
             for (; i < parsedArgs.Count; i++)
