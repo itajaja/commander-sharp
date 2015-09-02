@@ -80,10 +80,15 @@ namespace Jaja.Commander
           case ArgType.LongOpt:
           case ArgType.ShortOpt:
             var prop = GetProp(cur.type, cur.val);
-            if (prop.Value.GetType() == typeof(Opt))
+            if (prop.Value.GetType() == typeof (Opt))
               SetArgument(Options, prop.Key);
             else
-              SetArgument(Options, prop.Key, parsedArgs[++i].val);
+            {
+              i++;
+              if(parsedArgs.Count == i || parsedArgs[i].type != ArgType.Argument)
+                throw new CommanderException($"option {prop.Value.LongName} must have an argument");
+              SetArgument(Options, prop.Key, parsedArgs[i].val);
+            }
             break;
           case ArgType.ShortOpts:
             foreach (var opt in cur.val.Skip(1))
@@ -114,9 +119,12 @@ namespace Jaja.Commander
 
     private static void SetArgument(T argObject, string argName)
     {
-      var arg = (Opt)typeof(T).GetProperty(argName).GetValue(argObject);
+      var prop = typeof(T).GetProperty(argName);
+      var arg = (Opt)prop.GetValue(argObject);
+      if(prop.PropertyType != typeof(Opt))
+        throw new CommanderException($"option {arg.LongName} must have an argument");
       if (arg.IsDefined)
-        throw new CommanderException($"argument {arg.LongName} defined twice");
+        throw new CommanderException($"option {arg.LongName} defined twice");
       arg.IsDefined = true;
     }
 
@@ -125,7 +133,7 @@ namespace Jaja.Commander
       var prop = typeof(T).GetProperty(argName);
       var arg = (Opt)prop.GetValue(argObject);
       if (arg.IsDefined)
-        throw new CommanderException($"argument {arg.LongName} defined twice");
+        throw new CommanderException($"option {arg.LongName} defined twice");
       arg.IsDefined = true;
       var coercion = (Delegate) arg.GetType().GetProperty(nameof(Opt<object>.Coercion)).GetValue(arg);
       arg.GetType().GetProperty(nameof(Opt<object>.Value)).SetValue(arg, coercion.DynamicInvoke(value));

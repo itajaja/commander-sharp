@@ -82,6 +82,19 @@ namespace Jaja.Commander.Test
     }
 
     [Fact]
+    public void ErrorShortBundle()
+    {
+      Assert.Throws<CommanderException>(() => CreateArgs("-bf", new Opts1()));
+    }
+
+    [Fact]
+    public void ErrorOptionWithoutValue()
+    {
+      Assert.Throws<CommanderException>(() => CreateArgs("-z --foo", new Opts1()));
+      Assert.Throws<CommanderException>(() => CreateArgs("-foo -z", new Opts1()));
+    }
+
+    [Fact]
     public void ErrorDuplicateOption()
     {
       Assert.Throws<CommanderException>(() => CreateArgs("-b -b", new Opts1()));
