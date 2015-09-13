@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Xunit;
+using System.Collections.Generic;
 
 namespace Jaja.Commander.Test
 {
@@ -55,7 +56,6 @@ namespace Jaja.Commander.Test
     public void ParseOptionsCorrectly()
     {
       var args = CreateArgs("-f 11 -b -c 1 2 3", new Opts1());
-
       Assert.Equal(11, args.Options.Foo.Value);
       Assert.Equal(true, args.Options.Bar.IsDefined);
       Assert.Equal(false, args.Options.Waka.IsDefined);
@@ -95,25 +95,21 @@ namespace Jaja.Commander.Test
     }
 
     [Fact]
-    public void ErrorDuplicateOption()
+    public void ErrorDuplicateOptions()
     {
       Assert.Throws<CommanderException>(() => CreateArgs("-b -b", new Opts1()));
-    }
-
-    [Fact]
-    public void ErrorDuplicateOption2()
-    {
       Assert.Throws<CommanderException>(() => CreateArgs("-b -bar", new Opts1()));
-    }
-
-    [Fact]
-    public void ErrorDuplicateOption3()
-    {
       Assert.Throws<CommanderException>(() => CreateArgs("-f 1 -foo 1", new Opts1()));
     }
 
-    private static Arguments<T> CreateArgs<T>(string inputArgs, T options) =>
-      Commander.New(options).Parse(inputArgs.Split(' '));
+    [Fact]
+    public void Coercion(){
+      var opts = new {
+        Coer = new Opt<int[]>(coercion: (s) => s.Split(',').Select(n => int.Parse(n)).ToArray())
+      };
+    }
+
+    private static Arguments<T> CreateArgs<T>(string inputArgs, T options) => Commander.New(options).Parse(inputArgs.Split(' '));
 
     private class Opts1
     {
