@@ -6,21 +6,27 @@ namespace Jaja.Commander
 {
   public static class Commander
   {
-    public static Commander<T> New<T>(T options)
+    public static Commander<T> New<T>(T options, string description = "")
     {
-      
-
-      return new Commander<T>(options);
+      return new Commander<T>(options, description);
     }
   }
 
   public class Commander<T>
   {
-    public IDictionary<string, Opt> OptionsDic { get; }
+    private IDictionary<string, Opt> OptionsDic { get; }
 
+    ///<summary>
+    /// The list of options for the command
+    ///</summary>
     public T Options { get; }
-    
-    internal Commander(T options)
+
+    ///<summary>
+    /// A description that appears in the help section for the command
+    ///</summary>
+    public string Description { get; }
+
+    internal Commander(T options, string description = "")
     {
       var t = typeof(T);
 
@@ -44,20 +50,14 @@ namespace Jaja.Commander
 
       OptionsDic = optDic;
       Options = options;
-
+      Description = description;
       // validte the arguments first
       ValidateOptions();
     }
 
     /// <summary>
-    /// String that describes the usage of the command
-    /// </summary>
-    public string Usage { get; set; }
-
-    /// <summary>
     /// Creates a command line parser out of the parsed values
     /// </summary>
-    /// <param name="args"></param>
     public Arguments<T> Parse(string[] args)
     {
       Func<string, bool> isShort = a => a.Length == 2 && a[0] == '-' && a[1] != '-';
@@ -113,6 +113,13 @@ namespace Jaja.Commander
         Args = newArgs,
         Options = Options
       };
+    }
+
+    /// <summary>
+    /// Creates a sub command with specific options
+    /// </summary>
+    public Commander<TSub> Command<TSub>(string name, string description, TSub options, Action<TSub> action) {
+      throw new NotImplementedException();
     }
 
     #region private methods
