@@ -16,6 +16,9 @@ namespace Jaja.Commander
   {
     private IDictionary<string, Opt> OptionsDic { get; }
 
+    // contains the callback to call for a specific sub-command
+    private IDictionary<string, Action<string[]>> Subcommands { get; } = new Dictionary<string, Action<string[]>>();
+
     ///<summary>
     /// The list of options for the command
     ///</summary>
@@ -72,6 +75,14 @@ namespace Jaja.Commander
 
       var newArgs = new List<string>();
 
+      // check for subcommands
+      if(args.Length > 0 && Subcommands.ContainsKey(args[0]))
+      {
+        Subcommands[args[0]](args.Skip(1).ToArray());
+        return null;
+      }
+
+      // evaluates the argumets
       for (var i = 0; i < parsedArgs.Count; i++)
       {
         var cur = parsedArgs[i];
@@ -120,8 +131,11 @@ namespace Jaja.Commander
     /// <summary>
     /// Creates a sub command with specific options
     /// </summary>
-    public Commander<TSub> Command<TSub>(string name, string description, TSub options, Action<TSub> action) {
-      throw new NotImplementedException();
+    public Commander<TSub> Command<TSub>(string name, string description, TSub options, Action<Arguments<TSub>> action) {
+      var command = Commander.New(options, description);
+      Action<string[]> cb = (string[] args) => action(command.Parse(args));
+      Subcommands[name] = cb;
+      return command;
     }
 
     #region private methods
