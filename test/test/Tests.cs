@@ -31,28 +31,6 @@ namespace Jaja.Commander.Test
     }
 
     [Fact]
-    public void GenerateCommander()
-    {
-      var c = Commander.New(new
-      {
-        Foo = new Opt<int>(),
-        Bar = new Opt(),
-        Waka = new Opt('z'),
-        Chu = new Opt(longName: "chuchu"),
-      });
-
-      var shorts = c.OptionsDic.Select(a => a.Value.ShortName).ToList();
-      new[] { 'f', 'z', 'b', 'c' }
-        .ToList()
-        .ForEach(a => Assert.Contains(a, shorts));
-
-      var longs = c.OptionsDic.Select(a => a.Value.LongName).ToList();
-      new[] { "foo", "bar", "waka", "chuchu" }
-        .ToList()
-        .ForEach(a => Assert.Contains(a, longs));
-    }
-
-    [Fact]
     public void ParseOptionsCorrectly()
     {
       var args = CreateArgs("-f 11 -b -c 1 2 3", new Opts1());
@@ -109,7 +87,7 @@ namespace Jaja.Commander.Test
       };
     }
 
-    private static Arguments<T> CreateArgs<T>(string inputArgs, T options) => Commander.New(options).Parse(inputArgs.Split(' '));
+    internal static Arguments<T> CreateArgs<T>(string inputArgs, T options) => Commander.New(options).Parse(inputArgs.Split(' '));
 
     private class Opts1
     {
