@@ -8,8 +8,8 @@
 
   "dependencies": {
     "commander-sharp": "",
-    "xunit": "2.1.0-beta4-*",
-    "xunit.runner.dnx": "2.1.0-beta4-*"
+    "xunit": "2.1.0-beta5-*",
+    "xunit.runner.dnx": "2.1.0-beta5-*"
   },
 
   "commands": {
