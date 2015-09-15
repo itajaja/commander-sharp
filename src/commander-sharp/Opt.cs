@@ -22,7 +22,38 @@ namespace Jaja.Commander
     public bool IsDefined { get; internal set; }
   }
 
-  public class Opt<T> : Opt
+  public interface IOpt
+  {
+    char ShortName { get; }
+
+    string LongName { get; }
+
+    string Desc { get; }
+
+    bool IsDefined { get; }
+  }
+
+  public interface IArgOpt<out T> : IOpt
+  {
+    /// <summary>
+    /// Determines if the value is optional or not
+    /// </summary>
+    bool IsOptional { get; }
+
+    /// <summary>
+    /// The Coercion of the command
+    /// </summary>
+    Func<string, T> Coercion { get; }
+
+    /// <summary>
+    /// The default value of the property
+    /// </summary>
+    T DefaultValue { get; }
+
+    T Value { get; }
+  }
+
+  public class Opt<T> : Opt, IArgOpt<T>
   {
     public Opt(char shortName = default(char), string longName = "", string desc = "",
       bool isOptional = true, Func<string, T> coercion = null, T defaultValue = default(T))
@@ -31,23 +62,19 @@ namespace Jaja.Commander
       Coercion = coercion ?? (Utils.Parse<T>);
       DefaultValue = defaultValue;
       IsOptional = isOptional;
+      Value = defaultValue;
     }
 
     public T Value { get; internal set; }
 
+    public bool IsOptional { get; }
+
+    public T DefaultValue { get; }
+
     /// <summary>
     /// The Coercion of the command
     /// </summary>
-    public Func<string, T> Coercion { get; internal set; }
+    public Func<string, T> Coercion { get; }
 
-    /// <summary>
-    /// Determines if the value is optional or not
-    /// </summary>
-    public bool IsOptional { get; internal set; }
-
-    /// <summary>
-    /// The default value of the property
-    /// </summary>
-    public T DefaultValue { get; internal set; }
   }
 }

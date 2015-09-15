@@ -108,6 +108,8 @@ namespace Jaja.Commander
         }
       }
 
+      CheckRequiredOptions();
+
       return new Arguments<T>
       {
         Args = newArgs,
@@ -123,6 +125,14 @@ namespace Jaja.Commander
     }
 
     #region private methods
+
+    private void CheckRequiredOptions(){
+      var missingRequired = OptionsDic.Values
+        .OfType<IArgOpt<object>>()
+        .FirstOrDefault(o => !o.IsOptional && !o.IsDefined);
+      if(missingRequired != null)
+        throw new CommanderException($"Property {missingRequired.LongName} is required");
+    }
 
     private static void SetArgument(T argObject, string argName)
     {
