@@ -16,11 +16,13 @@ namespace Jaja.Commander
   {
     private const string HelpKey = "___$$help$$___";
     private const string VersionKey = "___$$version$$___";
+    private const int helpIndentation = 3;
+    private const int helpSpace = 5;
 
     private IDictionary<string, Opt> OptionsDic { get; }
 
     // contains the callback to call for a specific sub-command
-    private IDictionary<string, Action<string[]>> Subcommands { get; } = new Dictionary<string, Action<string[]>>();
+    private IDictionary<string, SubCommand> Subcommands { get; } = new Dictionary<string, SubCommand>();
 
     ///<summary>
     /// The list of options for the command
@@ -92,7 +94,7 @@ namespace Jaja.Commander
       // check for subcommands
       if(args.Length > 0 && Subcommands.ContainsKey(args[0]))
       {
-        Subcommands[args[0]](args.Skip(1).ToArray());
+        Subcommands[args[0]].On(args.Skip(1).ToArray());
         return null;
       }
 
@@ -152,11 +154,15 @@ namespace Jaja.Commander
     /// <summary>
     /// Creates a sub command with specific options
     /// </summary>
-    public Commander<TSub> Command<TSub>(string name, string description, TSub options, Action<Arguments<TSub>> action) {
+    public Commander<T> Command<TSub>(string name, string description, TSub options, Action<Arguments<TSub>> action) {
       var command = Commander.New(name, options, description);
-      Action<string[]> cb = args => action(command.Parse(args));
-      Subcommands[name] = cb;
-      return command;
+      Action<string[]> on = args => action(command.Parse(args));
+      Subcommands[name] = new SubCommand
+      {
+        Description = description,
+        On = on
+      };
+      return this;
     }
 
     /// <summary>
@@ -164,25 +170,28 @@ namespace Jaja.Commander
     /// </summary>
     public string Help()
     {
-      const int indentation = 3;
       var help = new List<string>();
       help.Add(Name);
       help.Add("Version Number (TODO)");
       help.Add(Description);
-      help.Add("");
-      if (OptionsDic.Any())
+      Action<List<Tuple<string,string>>> addToHelp = list =>
       {
-        help.Add("Options:");
-        var options = OptionsDic.Values
-          .Select(o => new
-          {
-            name = $"-{o.ShortName}, --{o.LongName}",
-            desc = o.Desc
-          }).ToList();
-        var maxlenght = options.Max(o => o.name.Length + 5);
-        options.Select(o => " ".Repeat(indentation) + o.name + " ".Repeat(maxlenght - o.name.Length) + o.desc)
+        var maxlenght = list.Max(o => o.Item1.Length + helpSpace);
+        list.Select(i => " ".Repeat(helpIndentation) + i.Item1 + " ".Repeat(maxlenght - i.Item1.Length) + i.Item2)
           .ToList()
           .ForEach(help.Add);
+      };
+      if (OptionsDic.Any())
+      {
+        help.Add("");
+        help.Add("Options:");
+        addToHelp(OptionsDic.Values.Select(o => new Tuple<string, string>($"-{o.ShortName}, --{o.LongName}", o.Desc)).ToList());
+      }
+      if (Subcommands.Any())
+      {
+        help.Add("");
+        help.Add("Commands:");
+        addToHelp(Subcommands.Select(c => new Tuple<string, string>(c.Key, c.Value?.Description)).ToList());
       }
       return string.Join("\n", help);
     }
@@ -252,6 +261,13 @@ namespace Jaja.Commander
     ShortOpt,
     ShortOpts,
     Argument
+  }
+
+  internal class SubCommand
+  {
+    public string Description { get; set; }
+
+    public Action<string[]> On { get; set; }
   }
 
   /// <summary>
