@@ -6,9 +6,9 @@ namespace Jaja.Commander
 {
   public static class Commander
   {
-    public static Commander<T> New<T>(T options, string description = "")
+    public static Commander<T> New<T>(string name, T options, string description = "")
     {
-      return new Commander<T>(options, description);
+      return new Commander<T>(name, options, description);
     }
   }
 
@@ -29,7 +29,12 @@ namespace Jaja.Commander
     ///</summary>
     public string Description { get; }
 
-    internal Commander(T options, string description = "")
+    /// <summary>
+    /// The name of the command line application
+    /// </summary>
+    public string Name { get; }
+
+    internal Commander(string name, T options, string description = "")
     {
       var t = typeof(T);
 
@@ -54,6 +59,7 @@ namespace Jaja.Commander
       OptionsDic = optDic;
       Options = options;
       Description = description;
+      Name = name;
       // validte the arguments first
       ValidateOptions();
     }
@@ -132,8 +138,8 @@ namespace Jaja.Commander
     /// Creates a sub command with specific options
     /// </summary>
     public Commander<TSub> Command<TSub>(string name, string description, TSub options, Action<Arguments<TSub>> action) {
-      var command = Commander.New(options, description);
-      Action<string[]> cb = (string[] args) => action(command.Parse(args));
+      var command = Commander.New(name, options, description);
+      Action<string[]> cb = args => action(command.Parse(args));
       Subcommands[name] = cb;
       return command;
     }

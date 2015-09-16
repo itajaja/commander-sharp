@@ -1,6 +1,4 @@
-using System.Linq;
 using Xunit;
-using System.Collections.Generic;
 
 namespace Jaja.Commander.Test
 {

@@ -1,6 +1,4 @@
-using System.Linq;
 using Xunit;
-using System.Collections.Generic;
 
 namespace Jaja.Commander.Test
 {
@@ -9,9 +7,9 @@ namespace Jaja.Commander.Test
     [Fact]
     public void Longs()
     {
-      var program = Commander.New(new {
+      var program = Commander.New("pizza", new {
         Pepper = new Opt(desc: "add pepper"),
-        NoCheese = new Opt(shortName: 'c', desc: "remove cheese")
+        NoCheese = new Opt('c', desc: "remove cheese")
       });
       var args = program.Parse(new [] {"--pepper"});
       Assert.Equal(true, args.Options.Pepper.IsDefined);
@@ -21,9 +19,9 @@ namespace Jaja.Commander.Test
     [Fact]
     public void Shorts()
     {
-      var program = Commander.New(new {
+      var program = Commander.New("pizza", new {
         Pepper = new Opt(desc: "add pepper"),
-        NoCheese = new Opt(shortName: 'c', desc: "remove cheese")
+        NoCheese = new Opt('c', desc: "remove cheese")
       });
       var args = program.Parse(new []{"-c", "-p"});
       Assert.Equal(true, args.Options.Pepper.IsDefined);
@@ -33,9 +31,9 @@ namespace Jaja.Commander.Test
     [Fact]
     public void ShortCombined()
     {
-      var program = Commander.New(new {
+      var program = Commander.New("pizza", new {
         Pepper = new Opt(desc: "add pepper"),
-        NoCheese = new Opt(shortName: 'c', desc: "remove cheese")
+        NoCheese = new Opt('c', desc: "remove cheese")
       });
       var args = program.Parse(new []{"-pc"});
       Assert.Equal(true, args.Options.Pepper.IsDefined);

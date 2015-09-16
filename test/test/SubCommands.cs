@@ -1,6 +1,5 @@
 using System.Linq;
 using Xunit;
-using System.Collections.Generic;
 
 namespace Jaja.Commander.Test
 {
@@ -10,7 +9,7 @@ namespace Jaja.Commander.Test
     [Fact]
     public void SimpleSubCommand()
     {
-      var program = Commander.New(new {
+      var program = Commander.New("cmd", new {
         Chdir = new Opt<string>('C', desc: "change the working directory"),
         Config = new Opt<string>(desc: "set config path. defaults to ./deploy.conf"),
         NoTests = new Opt('T', desc: "ignore test hook")

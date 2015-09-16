@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using Xunit;
-using System.Collections.Generic;
 
 namespace Jaja.Commander.Test
 {
@@ -15,7 +14,7 @@ namespace Jaja.Commander.Test
         Bar = new Opt('a')
       };
 
-      Assert.Throws<CommanderException>(() => Commander.New(pars));
+      Assert.Throws<CommanderException>(() => Commander.New("", pars));
     }
 
     [Fact]
@@ -27,7 +26,7 @@ namespace Jaja.Commander.Test
         Bar = new Opt(longName: "foo")
       };
 
-      Assert.Throws<CommanderException>(() => Commander.New(pars));
+      Assert.Throws<CommanderException>(() => Commander.New("", pars));
     }
 
     [Fact]
@@ -83,11 +82,16 @@ namespace Jaja.Commander.Test
     [Fact]
     public void Coercion(){
       var opts = new {
-        Coer = new Opt<int[]>(coercion: (s) => s.Split(',').Select(n => int.Parse(n)).ToArray())
+        Coer = new Opt<int[]>(coercion: s => s.Split(',').Select(int.Parse).ToArray())
       };
+      var arg = CreateArgs("-c 3,4,6", opts);
+      Assert.Contains(3, arg.Options.Coer.Value);
+      Assert.Contains(4, arg.Options.Coer.Value);
+      Assert.Contains(6, arg.Options.Coer.Value);
+      Assert.Throws<CommanderException>(() => CreateArgs("-c 3,oo,6", opts));
     }
 
-    internal static Arguments<T> CreateArgs<T>(string inputArgs, T options) => Commander.New(options).Parse(inputArgs.Split(' '));
+    internal static Arguments<T> CreateArgs<T>(string inputArgs, T options) => Commander.New("", options).Parse(inputArgs.Split(' '));
 
     private class Opts1
     {
