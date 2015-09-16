@@ -14,6 +14,9 @@ namespace Jaja.Commander
 
   public class Commander<T>
   {
+    private const string HelpKey = "___$$help$$___";
+    private const string VersionKey = "___$$version$$___";
+
     private IDictionary<string, Opt> OptionsDic { get; }
 
     // contains the callback to call for a specific sub-command
@@ -57,6 +60,11 @@ namespace Jaja.Commander
         });
 
       OptionsDic = optDic;
+      
+      // add help
+      if(GetProp(ArgType.ShortOpt, "-h").Value == null && GetProp(ArgType.LongOpt, "--help").Value == null)
+        OptionsDic.Add(HelpKey, new Opt('h', "help", "prints this help message"));
+
       Options = options;
       Description = description;
       Name = name;
@@ -98,18 +106,18 @@ namespace Jaja.Commander
           case ArgType.ShortOpt:
             var prop = GetProp(cur.type, cur.val);
             if (prop.Value.GetType() == typeof (Opt))
-              SetArgument(Options, prop.Key);
+              SetArgument(prop.Key);
             else
             {
               i++;
               if(parsedArgs.Count == i || parsedArgs[i].type != ArgType.Argument)
                 throw new CommanderException($"option {prop.Value.LongName} must have an argument");
-              SetArgument(Options, prop.Key, parsedArgs[i].val);
+              SetArgument(prop.Key, parsedArgs[i].val);
             }
             break;
           case ArgType.ShortOpts:
             foreach (var opt in cur.val.Skip(1))
-              SetArgument(Options, GetProp(cur.type, "-" + opt).Key);
+              SetArgument(GetProp(cur.type, "-" + opt).Key);
             break;
           case ArgType.Argument:
             for (; i < parsedArgs.Count; i++)
@@ -123,6 +131,13 @@ namespace Jaja.Commander
           default:
             throw new ArgumentOutOfRangeException();
         }
+      }
+
+      // check for help
+      if (OptionsDic.ContainsKey(HelpKey) && OptionsDic[HelpKey].IsDefined)
+      {
+        WriteToConsole(Help());
+        return null;
       }
 
       CheckRequiredOptions();
@@ -182,21 +197,20 @@ namespace Jaja.Commander
         throw new CommanderException($"Property {missingRequired.LongName} is required");
     }
 
-    private static void SetArgument(T argObject, string argName)
+    private void SetArgument(string argName)
     {
-      var prop = typeof(T).GetProperty(argName);
-      var arg = (Opt)prop.GetValue(argObject);
-      if(prop.PropertyType != typeof(Opt))
+      var arg = OptionsDic[argName];
+      var prop = arg.GetType();
+      if(prop != typeof(Opt))
         throw new CommanderException($"option {arg.LongName} must have an argument");
       if (arg.IsDefined)
         throw new CommanderException($"option {arg.LongName} defined twice");
       arg.IsDefined = true;
     }
 
-    private static void SetArgument(T argObject, string argName, string value)
+    private void SetArgument(string argName, string value)
     {
-      var prop = typeof(T).GetProperty(argName);
-      var arg = (Opt)prop.GetValue(argObject);
+      var arg = OptionsDic[argName];
       if (arg.IsDefined)
         throw new CommanderException($"option {arg.LongName} defined twice");
       arg.IsDefined = true;
@@ -207,8 +221,8 @@ namespace Jaja.Commander
     private KeyValuePair<string, Opt> GetProp(ArgType type, string argVal)
     {
       return type == ArgType.LongOpt
-        ? OptionsDic.Single(a => a.Value.LongName == argVal.Substring(2))
-        : OptionsDic.Single(a => a.Value.ShortName == argVal[1]);
+        ? OptionsDic.SingleOrDefault(a => a.Value.LongName == argVal.Substring(2))
+        : OptionsDic.SingleOrDefault(a => a.Value.ShortName == argVal[1]);
     }
 
     /// <summary>
@@ -225,6 +239,11 @@ namespace Jaja.Commander
         throw new CommanderException($"Invalid options, there are two options with key {duplicateLong.Key}");
     }
     #endregion
+
+    /// <summary>
+    /// Gets or sets the method used to print the messages. Defaults to `Console.WriteLine`
+    /// </summary>
+    public Action<string> WriteToConsole { get; set; } = Console.WriteLine;
   }
 
   internal enum ArgType
