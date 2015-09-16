@@ -144,6 +144,34 @@ namespace Jaja.Commander
       return command;
     }
 
+    /// <summary>
+    /// Outputs the help message for the command
+    /// </summary>
+    public string Help()
+    {
+      const int indentation = 3;
+      var help = new List<string>();
+      help.Add(Name);
+      help.Add("Version Number (TODO)");
+      help.Add(Description);
+      help.Add("");
+      if (OptionsDic.Any())
+      {
+        help.Add("Options:");
+        var options = OptionsDic.Values
+          .Select(o => new
+          {
+            name = $"-{o.ShortName}, --{o.LongName}",
+            desc = o.Desc
+          }).ToList();
+        var maxlenght = options.Max(o => o.name.Length + 5);
+        options.Select(o => " ".Repeat(indentation) + o.name + " ".Repeat(maxlenght - o.name.Length) + o.desc)
+          .ToList()
+          .ForEach(help.Add);
+      }
+      return string.Join("\n", help);
+    }
+
     #region private methods
 
     private void CheckRequiredOptions(){
