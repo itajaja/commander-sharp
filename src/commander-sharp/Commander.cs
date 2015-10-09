@@ -62,7 +62,7 @@ namespace Jaja.Commander
         });
 
       OptionsDic = optDic;
-      
+
       // add help
       if(GetProp(ArgType.ShortOpt, "-h").Value == null && GetProp(ArgType.LongOpt, "--help").Value == null)
         OptionsDic.Add(HelpKey, new Opt('h', "help", "prints this help message"));
@@ -173,7 +173,7 @@ namespace Jaja.Commander
       var help = new List<string>();
       help.Add(Name);
       help.Add("Version Number (TODO)");
-      help.Add(Description);
+      if(!string.IsNullOrEmpty(Description)) help.Add(Description);
       Action<List<Tuple<string,string>>> addToHelp = list =>
       {
         var maxlenght = list.Max(o => o.Item1.Length + helpSpace);
